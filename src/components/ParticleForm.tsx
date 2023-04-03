@@ -1,26 +1,18 @@
 // src/components/ParticleForm.tsx
 
-import React, { useState } from "react";
-import styled from "@emotion/styled";
+import React, { useState } from "react"
+import styled from "@emotion/styled"
+import { createDefaultFormData, FormData } from "./types"
 
 interface ParticleFormProps {
   onFormSubmit: (formData: FormData) => void;
 }
 
-export interface FormData {
-  numberOfParticles: number;
-  fixedAngle: number;
-  reactionRadius: number;
-}
-
 const ParticleForm: React.FC<ParticleFormProps> = ({ onFormSubmit }) => {
-  const [formData, setFormData] = useState<FormData>({
-    numberOfParticles: 0,
-    fixedAngle: 0,
-    reactionRadius: 0,
-  });
+  const [formData, setFormData] = useState<FormData>(createDefaultFormData());
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('New value for \'' + e.target.name + '\' = ' + e.target.value)
     setFormData({ ...formData, [e.target.name]: parseFloat(e.target.value) });
   };
 
@@ -41,16 +33,25 @@ const ParticleForm: React.FC<ParticleFormProps> = ({ onFormSubmit }) => {
         />
       </FormField>
       <FormField>
-        <label htmlFor="fixedAngle">Fixed Angle (in degrees):</label>
+        <label htmlFor="particulRadius">Particles radius:</label>
         <input
           type="number"
-          name="fixedAngle"
-          value={formData.fixedAngle}
+          name="particulRadius"
+          value={formData.particuleRadius}
           onChange={handleChange}
         />
       </FormField>
       <FormField>
-        <label htmlFor="reactionRadius">React to other particles in radius:</label>
+        <label htmlFor="speed">Particles speed:</label>
+        <input
+          type="number"
+          name="speed"
+          value={formData.speed}
+          onChange={handleChange}
+        />
+      </FormField>
+      <FormField>
+        <label htmlFor="reactionRadius">Reaction radius:</label>
         <input
           type="number"
           name="reactionRadius"
