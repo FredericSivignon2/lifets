@@ -3,6 +3,7 @@
 import React, { useRef, useEffect, useState } from 'react'
 import { useAnimationFrame } from '../hooks/useAnimationFrame'
 import { FormData, NeighborInfo, Particle, ParticleCanvasProps } from './types'
+import p5Types from 'p5'
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
@@ -17,6 +18,7 @@ const ParticleCanvas: React.FC<ParticleCanvasProps> = ({
   const heightRef = useRef<number>(height)
   const particlesRef = useRef<Particle[]>([])
   const animationFrameRef = useRef<number>()
+  const p5 = p5.
 
   console.log('ParticleCanvas starting, width=' + width + ' - height=' + height)
 
@@ -39,14 +41,14 @@ const ParticleCanvas: React.FC<ParticleCanvasProps> = ({
       particlesRef.current.forEach((particle) => {
         ctx.beginPath()
         ctx.arc(
-          particle.x,
-          particle.y,
+          particle.position.x,
+          particle.position.y,
           formData.particuleRadius,
           0,
           2 * Math.PI
         )
         // console.log('X=' + particle.x + ' - Y=' + particle.y)
-        ctx.fillStyle = particle.color
+        ctx.fillStyle = particle.color.toString()
         ctx.fill()
       })
     }
@@ -76,77 +78,6 @@ const ParticleCanvas: React.FC<ParticleCanvasProps> = ({
 
 export default ParticleCanvas
 
-const updateParticles = (previousParticles: Particle[], 
-                        formData: FormData,
-                        width: number,
-                        height: number ): Particle[] => {
-  previousParticles.forEach((particle) => {
-    return updateParticle(
-      formData,
-      particle,
-      previousParticles,
-      width,
-      height
-    )
-  })
-
-  return previousParticles
-}
-
-function updateParticle(
-  formData: FormData,
-  particle: Particle,
-  previousParticles: Particle[],
-  width: number,
-  height: number
-) {
-  // console.log(
-  //   '(5) Updating particle: ' +
-  //     JSON.stringify(particle) +
-  //     ' - width: ' +
-  //     width +
-  //     ' - height: ' +
-  //     height
-  // )
-
-  var neighbordInfo = getHemisphereNeighborsInfo(
-    formData,
-    particle,
-    previousParticles
-  )
-
-  //console.log('   neighbordInfo: ' + JSON.stringify(neighbordInfo))
-
-  if (neighbordInfo.neighborNumber > 0) {
-    particle.orientation += neighbordInfo.needToTurnLeft
-      ? particle.behavior
-      : -particle.behavior
-  }
-
-  particle.color = getColorByNeighborNumber(neighbordInfo.neighborNumber)
-
-  // Convert the angle from degrees to radians
-  const angleRadians = (particle.orientation * Math.PI) / 180
-
-  // Calculate the new velocity components
-  const dx = Math.cos(angleRadians) * particle.v
-  const dy = Math.sin(angleRadians) * particle.v
-
-  // console.log('   dx, dy: ' + dx + ', ' + dy)
-
-  particle.x += dx
-  particle.y += dy
-  particle.orientation = (particle.orientation + 180) % 360
-
-  // If the particle is out of the canvas bounds, wrap it around
-  if (particle.x < 0) particle.x = width
-  if (particle.x > width) particle.x = 0
-  if (particle.y < 0) particle.y = height
-  if (particle.y > height) particle.y = 0
-
-  //console.log('(6) Particle updated: ' + JSON.stringify(particle))
-  return particle
-}
 
 const generateRandomParticles = (
   data: FormData,
@@ -154,15 +85,9 @@ const generateRandomParticles = (
   height: number
 ): Particle[] => {
   console.log('Generating ' + data.numberOfParticles + ' particles using width=' + width + ' and height=' + height)
-  return Array.from({ length: data.numberOfParticles }, () => ({
-    x: Math.random() * width,
-    y: Math.random() * height,
-    orientation: 0,
-    v: data.speed * data.particuleRadius,
-    alpha: 180,
-    behavior: 5.17,
-    color: 'green',
-  }))
+  return Array.from({ length: data.numberOfParticles }, () => {
+    new Particle(p)
+  })
 }
 
 const getColorByNeighborNumber = (neighborNumber: number): string => {
