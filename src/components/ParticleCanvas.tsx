@@ -1,13 +1,12 @@
-// src/components/ParticleCanvas.tsx
-
 import React, { useRef, useEffect, useState } from 'react'
 import { useAnimationFrame } from '../hooks/useAnimationFrame'
-import { EnvironmentData, FormData, NeighborInfo, Particle, ParticleCanvasProps } from './types'
+import { EnvironmentData, MainData, NeighborInfo, ParticleCanvasProps } from './types'
 import { Box, Circle, Point, QuadTree } from 'js-quadtree'
-import { angleBetweenPoints, getDistanceBetween, resolveElasticCollision } from '../utils/Math2D'
+import { angleBetweenPoints, getDistanceBetween } from '../utils/Math2D'
 import { generateRandomParticles, getQuadTreeConfig } from '../utils/factory'
-
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+import { Particle } from '../models/Particle'
+import { playSound } from '../utils/sound'
+import ball_sound from "../sounds/ball_sound_01.wav"
 
 const ParticleCanvas: React.FC<ParticleCanvasProps> = ({
   width,
@@ -15,48 +14,69 @@ const ParticleCanvas: React.FC<ParticleCanvasProps> = ({
   formData,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const widthRef = useRef<number>(width)
-  const heightRef = useRef<number>(height)
   const particlesRef = useRef<Particle[]>([])
-  const animationFrameRef = useRef<number>()
   const envDataRef = useRef<EnvironmentData>()
 
-  // FOR DEBUG ONLY
-  // width = 60
-  // height = 40
-
   const nextAnimationFrameHandler = (width: number, height: number): void => {
-    // console.log('(2) useEffect() -> Rendering particles: ' + particlesRef.current.length)
 
     if (particlesRef.current === undefined || envDataRef.current === undefined)
       return
 
+    const currentTime = performance.now()
+    envDataRef.current.deltaTime = currentTime - envDataRef.current.lastUpdateTime
     updateParticles(
       particlesRef.current,
       envDataRef.current
     )
 
     if (!canvasRef.current) return
-
+      performance.now
     const ctx = canvasRef.current.getContext('2d')
     if (!ctx) return
 
-    const drawParticles = () => {
-      ctx.clearRect(0, 0, width, height)
+    // const drawParticles = () => {
+    //   ctx.clearRect(0, 0, width, height)
 
+    //   particlesRef.current.forEach((particle) => {
+    //     ctx.beginPath()
+    //     ctx.arc(particle.x, particle.y, particle.radius, 0, 2 * Math.PI)
+    //     ctx.fillStyle = particle.color.toString()
+    //     ctx.fill()
+    //   })
+    // }
+
+    const drawParticles = () => {
+      ctx.clearRect(0, 0, width, height);
+    
       particlesRef.current.forEach((particle) => {
-        ctx.beginPath()
-        ctx.arc(particle.x, particle.y, particle.radius, 0, 2 * Math.PI)
-        // console.log('X=' + particle.x + ' - Y=' + particle.y)
-        ctx.fillStyle = particle.color.toString()
-        ctx.fill()
-      })
-    }
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, particle.radius, 0, 2 * Math.PI);
+    
+        // Create a radial gradient for the bubble
+        const gradient = ctx.createRadialGradient(
+          particle.x - particle.radius / 4,
+          particle.y - particle.radius / 4,
+          0,
+          particle.x,
+          particle.y,
+          particle.radius
+        );
+    
+        // Define gradient colors and stops
+        gradient.addColorStop(0, 'rgba(255, 255, 255, 0.8)');
+        gradient.addColorStop(0.95, particle.color.toString());
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0.2)');
+    
+        // Use the gradient as the fill style
+        ctx.fillStyle = gradient;
+        ctx.fill();
+      });
+    };
+
 
     drawParticles()
   }
 
-  // console.log('Before useAnimationFrame, Width=' + widthRef.current + ' - height=' + heightRef.current)
   useAnimationFrame(
     (width, height) => {
       nextAnimationFrameHandler(width, height)
@@ -67,18 +87,24 @@ const ParticleCanvas: React.FC<ParticleCanvasProps> = ({
 
   useEffect(() => {
 
-    
-
     const boundingArea = new Box(0, 0, width, height)
-    particlesRef.current = generateRandomParticles(formData, width, height)
     envDataRef.current = 
-      {
-        formData: formData,
-        quadTree: new QuadTree(boundingArea, getQuadTreeConfig()),
-        width: width,
-        height: height,
-        maxParticleRadius: Math.max(...particlesRef.current.map(particle => particle.radius))
-      }      
+    {
+      formData: formData,
+      quadTree: new QuadTree(boundingArea, getQuadTreeConfig()),
+      width: width,
+      height: height,
+      maxParticleRadius: 0,
+      lastUpdateTime: performance.now(),
+      deltaTime: 0,
+      audio: new Audio(ball_sound)
+    }      
+
+    if (envDataRef.current !== undefined) {
+      particlesRef.current = generateRandomParticles(envDataRef.current, width, height)
+      envDataRef.current.maxParticleRadius = Math.max(...particlesRef.current.map(particle => particle.radius))
+      envDataRef.current.audio.loop = false
+    }
 
   }, [formData, width, height])
 
@@ -93,82 +119,34 @@ const getPointsFromParticles = (particles: Particle[]): Point[] => {
   })
 }
 
+const getParticlesFromPoints = (points: Point[]) : Particle[] => {
+  return points.map((point) => {
+    return point.data 
+  })
+}
+
 const updateParticles = (
   particles: Particle[],
   envData: EnvironmentData
 ): Particle[] => {
-  particles.forEach((particle) => {
-    return updateParticlePosition(
-      particle,
-      particles,
-      envData
+
+  envData.quadTree.clear()
+  envData.quadTree.insert(getPointsFromParticles(particles))
+
+  particles.forEach((particle) => {    
+
+    const points = envData.quadTree.query(
+      new Circle(particle.x, particle.y, envData.height / 8)
     )
+
+    particle.applyAttractionForces(getParticlesFromPoints(points))
+  
+    particle.move()
   })
 
   checkCollisions(particles, envData)
 
   return particles
-}
-
-const moveParticle = (particle: Particle, envData: EnvironmentData) => {
-  const dx = particle.v * Math.cos(particle.a)
-  const dy = particle.v * Math.sin(particle.a)
-
-  particle.x += dx
-  particle.y += dy
-
-  if (particle.x >= envData.width) {
-    particle.x = envData.width
-    particle.a = Math.PI - particle.a
-  }
-  if (particle.x <= 0) {
-    particle.x = 0
-    particle.a = Math.PI - particle.a
-  }
-  if (particle.y >= envData.height) {
-    particle.y = envData.height
-    particle.a = -particle.a
-  }
-  if (particle.y <= 0) {
-    particle.y = 0
-    particle.a = -particle.a
-  }
-}
-
-const updateParticlePosition = (
-  particle: Particle,
-  previousParticles: Particle[],
-  envData: EnvironmentData
-): Particle => {
-  // updateParticleFromNeighbor()
-
-  moveParticle(particle, envData)
-
-  return particle
-
-  function updateParticleFromNeighbor() {
-    const points = envData.quadTree.query(new Circle(particle.x, particle.y, 400))
-    if (points && points !== undefined && points.length > 1) {
-      points.forEach((point) => {
-        if (point.x === particle.x && point.y === particle.y) {
-          return
-        }
-
-        const otherParticle = point.data
-        const angleBetween = angleBetweenPoints(particle, otherParticle)
-        const angleDiff = angleBetween - particle.a
-
-        const distance = getDistanceBetween(particle, otherParticle)
-        if (distance < particle.radius * 2) return
-
-        if (otherParticle.m > 0) {
-          particle.a = (particle.a + (angleDiff * 2) / distance) % (2 * Math.PI)
-          particle.v += otherParticle.m / distance
-          if (particle.v > 2) particle.v = 2
-        }
-      })
-    }
-  }
 }
 
 const checkCollisions = (
@@ -179,13 +157,10 @@ const checkCollisions = (
   envData.quadTree.insert(getPointsFromParticles(particles))
 
   particles.forEach((particle) => {
-    // console.log('>>> Processing particle id ' + particle.id)
     
     const points = envData.quadTree.query(
       new Circle(particle.x, particle.y, envData.maxParticleRadius * 3)
     )
-
-    //  console.log('     ' + (points && points != undefined ? points.length : 0) + ' points found: ' + JSON.stringify(points))
 
     if (points && points !== undefined && points.length > 1) {
      
@@ -195,83 +170,19 @@ const checkCollisions = (
         }
 
         const otherParticle = point.data
-        
-        if (
-          particle.interactionParticles.includes(otherParticle.id) ||
-          otherParticle.interactionParticles.includes(particle.id)
-        ) {
-          // console.log('      > Already processed.')
-          return
-        }
-        let distance = getDistanceBetween(particle, otherParticle)
-        // console.log('      > Distance between particles: ' + distance)
+        const distance = getDistanceBetween(particle, otherParticle)
 
         // Collision?
         if (distance > particle.radius + otherParticle.radius) {
-          // console.log('      > Distance too high. No collision.')
           return
         }
         // Now, modify particle direction if there is a collision
-        // const angleBetween = angleBetweenPoints(particle, otherParticle)
-        // console.log('*** Angle between particles: ' + angleBetween)
-
-        // console.log('      > Distance too low. COLLISION !!!')
-        resolveElasticCollision(particle, otherParticle)
-
+        particle.resolveElasticCollision(otherParticle)
         
-        // Swap the velocities along the line of impact
-        // const newVelocityA =
-        //   otherParticle.v * Math.cos(otherParticle.a - angleBetween)
-        // const newVelocityB = particle.v * Math.cos(particle.a - angleBetween)
-
-        // const previousA = particle.a // TO REMOVE
-        // particle.a = Math.atan2(
-        //   particle.v * Math.sin(particle.a - angleBetween) +
-        //     newVelocityA * Math.cos(angleBetween),
-        //   newVelocityA * Math.sin(angleBetween)
-        // )
-        // console.log('*** Particle angle from ' + previousA + ' to ' + particle.a)
-        // particle.interactionParticles.push(otherParticle.id)
-
-        // const previousB = otherParticle.a // TO REMOVE
-        // otherParticle.a = Math.atan2(
-        //   otherParticle.v * Math.sin(otherParticle.a - angleBetween) +
-        //     newVelocityB * Math.cos(angleBetween),
-        //   newVelocityB * Math.sin(angleBetween)
-        // )
-        // console.log('*** Other particle angle from ' + previousB + ' to ' + otherParticle.a)
-        // otherParticle.interactionParticles.push(particle.id)
-
-        
-
-        // while (distance < (particle.radius * 2) || distance < (otherParticle.radius * 2)) {
-        //   if (particle.a.toFixed(2) === otherParticle.a.toFixed(2)) {
-        //     particle.a = -particle.a
-        //   }
-
-        //   console.log('>>> Distance too low: ' + distance)
-        //   moveParticle(particle, width, height)
-        //   // moveParticle(otherParticle, width, height)
-        //   distance = getDistanceBetween(particle, otherParticle)
-        //   console.log('   >>> Distance updated to: ' + distance)
-        //   console.log('   >>> Dump particle: ' + JSON.stringify(particle))
-        //   console.log('   >>> Dump other particle: ' + JSON.stringify(otherParticle))
-        // }
-        //CALCULER LES ANGLES POUR LES 2 PARTICULES EN INTERACTION ET VOIR A NE PAS REEXUTER LE TEST
-        //A NOUVEAU (variable "traité" dans chaque particule. Mais comment traiter plusieurs interractions ?)
-
-        // particle.a = (particle.a - angleBetween) % (2 * Math.PI)
-        // particle.v -= 0.1
-        // if (particle.v < 0) particle.v = 0
+        // envData.audio.pause()
+        // envData.audio.play()
       })
-
-      // particle.color = 'red'
-    }
-  })
-
-  // Reset particles interraction information
-  particles.forEach((particle) => {
-    particle.interactionParticles = []
+   }
   })
 }
 

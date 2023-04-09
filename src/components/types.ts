@@ -1,9 +1,10 @@
-import { QuadTree } from "js-quadtree"
+import { QuadTree } from 'js-quadtree'
+import { velocitiesToSpeedAndAngle } from '../utils/Math2D'
 
 export interface ParticleCanvasProps {
   width: number
   height: number
-  formData: FormData
+  formData: MainData
 }
 
 export interface NeighborInfo {
@@ -12,75 +13,48 @@ export interface NeighborInfo {
 }
 
 export interface EnvironmentData {
-  formData: FormData
+  formData: MainData
   quadTree: QuadTree
   width: number
   height: number
   maxParticleRadius: number
+  /**
+   * The last time particles have been updated and rendered
+   */
+  lastUpdateTime: number
+  /**
+   * The delta time between last particles update and now
+   */
+  deltaTime: number
+  audio: any
 }
 
-export interface Particle {
-  /**
-   * The particule identifier
-   */
-  id: number,
-  /**
-   * x position
-   */
-  x: number
-  /**
-   * y position
-   */
-  y: number
-  /**
-   * Speed
-   */
-  v: number
-  /**
-   * Angle (direction)
-   */
-  a: number,
-  /**
-   * Mass
-   */
-  m: number,
-  /**
-   * Particule size
-   */
-  radius: number,
-  /**
-   * Particule color
-   */
-  color: string,
-  /**
-   * An array of particules ids to determine
-   * other particles that currently interract 
-   * with this one
-   */
-  interactionParticles: number[]
-}
+
 
 export interface Size {
   width: number
   height: number
 }
 
-export interface FormData {
-  /**
-   * The total number of particles in the screen
-   */
-  numberOfParticles: number
-  /**
-   * The radius used to considere particles neighbors
-   */
-  reactionRadius: number
-  /**
-   * Determines the particule speed
-   */
+export interface ParticleData {
   speed: number
-  /**
-   * Determines each particule size
-   */
-  particuleRadius: number
+  volumicMass: number
+  radius: number
+  color: string
+  numberOfParticles: number
 }
 
+export interface MainData {
+  /**
+   * The coefficient of restitution, is the ratio of the final to initial 
+   * relative speed between two objects after they collide.
+   */
+  coefficientOfRestitution: number
+  particlesData: ParticleData[]
+}
+
+export interface ParticleDataFormProps {
+  particleData: ParticleData
+  onRemove: () => void
+  onChange: (particleData: ParticleData) => void
+}

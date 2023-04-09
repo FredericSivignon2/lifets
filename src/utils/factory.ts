@@ -1,57 +1,118 @@
-import { FormData, Particle } from "../components/types"
+import { EnvironmentData, MainData } from '../components/types'
+import { Particle, ParticleImpl } from '../models/Particle'
+import { isNil } from './utils'
 
-export const createDefaultFormData = (): FormData => {
-    return {
-        numberOfParticles: 1000,
-        reactionRadius: 5,
-        speed: 0.67,
-        particuleRadius: 8
+// export const createDefaultFormData = (): MainData => {
+//   return {
+//     coefficientOfRestitution: 1,
+//     particlesData:
+//     [{
+//       speed: 1,
+//       volumicMass: 0.4,
+//       radius: 30,
+//       color: '#0000A0',
+//       numberOfParticles: 30
+//     },
+//     {
+//       speed: 0.5,
+//       volumicMass: 0.5,
+//       radius: 40,
+//       color: '#2A9E00',
+//       numberOfParticles: 30
+//     },
+//     {
+//       speed: 1,
+//       volumicMass: 0.3,
+//       radius: 25,
+//       color: '#C91DA4',
+//       numberOfParticles: 50
+//     },
+//     {
+//       speed: 0.2,
+//       volumicMass: 0.4,
+//       radius: 90,
+//       color: '#C96A1D',
+//       numberOfParticles: 1
+//     }
+//   ]
+//   }    
+// }
+
+export const createDefaultFormData = (): MainData => {
+  return {
+    coefficientOfRestitution: 1,
+    particlesData:
+    [{
+      speed: 1,
+      volumicMass: 1,
+      radius: 40,
+      color: '#C96A1D',
+      numberOfParticles: 1
+    },
+    {
+      speed: 1.5,
+      volumicMass: 1,
+      radius: 80,
+      color: '#C91DA4',
+      numberOfParticles: 1
     }
+  ]
+  }    
 }
 
 export const getQuadTreeConfig = () => {
-    return {
-        capacity: 4, // Specify the maximum amount of point per node (default: 4)
-        removeEmptyNodes: true, // Specify if the quadtree has to remove subnodes if they are empty (default: false).
-        maximumDepth: -1, // Specify the maximum depth of the quadtree. -1 for no limit (default: -1).
-        // Specify a custom method to compare point for removal (default: (point1, point2) => point1.x === point2.x && point1.y === point2.y).
-        // arePointsEqual: (point1, point2) => point1.data.foo === point2.data.foo
-      }
+  return {
+    capacity: 4, // Specify the maximum amount of point per node (default: 4)
+    removeEmptyNodes: true, // Specify if the quadtree has to remove subnodes if they are empty (default: false).
+    maximumDepth: -1, // Specify the maximum depth of the quadtree. -1 for no limit (default: -1).
+    // Specify a custom method to compare point for removal (default: (point1, point2) => point1.x === point2.x && point1.y === point2.y).
+    // arePointsEqual: (point1, point2) => point1.data.foo === point2.data.foo
+  }
 }
 
 export const generateRandomParticles = (
-    data: FormData,
-    width: number,
-    height: number
-  ): Particle[] => {
-    return Array.from({ length: data.numberOfParticles }, (_, i: number) => ({
-      id: i,
-      x: Math.random() * width,
-      y: Math.random() * height,
-      a: Math.random() * 2 * Math.PI,
-      v: 1,
-      m: 1,
-      radius: 4 + Math.random() * 20,
-      color: getRandomColor(),
-      interactionParticles: [],
-    }))
-  }
+  envData: EnvironmentData,
+  width: number,
+  height: number
+): Particle[] => {
+  if (isNil(envData.formData.particlesData)) return []
 
-  export const getRandomColor = (): string => {
-    const colorNumber = Math.round(Math.random() * 5)
-  
-    switch (colorNumber) {
-      case 0:
-        return 'green'
-      case 1:
-        return 'black'
-      case 2:
-        return 'orange'
-      case 3:
-        return 'red'
-      case 4:
-        return 'purple'
-      default:
-        return 'blue'
-    }
+  const result: Particle[] = []
+  envData.formData.particlesData.forEach((particleData) => {
+    return result.push(
+      ...Array.from({ length: particleData.numberOfParticles }, () => {
+        return new ParticleImpl(
+          envData,
+          Math.random() * width,
+          Math.random() * height,
+          particleData.speed,
+          Math.random() * 2 * Math.PI,
+          particleData.radius,
+          particleData.volumicMass,
+          particleData.color
+        )
+      })
+    )
+  })
+
+  return result
+}
+
+export const getRandomColor = (): string => {
+  const colorNumber = Math.round(Math.random() * 5)
+
+  switch (colorNumber) {
+    case 0:
+      return 'green'
+    case 1:
+      return 'black'
+    case 2:
+      return 'orange'
+    case 3:
+      return 'red'
+    case 4:
+      return 'purple'
+    default:
+      return 'blue'
   }
+}
