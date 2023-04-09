@@ -6,7 +6,8 @@ import styled, { StyledComponent } from '@emotion/styled'
 import useResizeObserver from '@react-hook/resize-observer'
 import ParticleForm from './components/ParticleForm'
 import ParticleCanvas from './components/ParticleCanvas'
-import { FormData, Size, ParticleCanvasProps, createDefaultFormData } from './components/types'
+import { FormData, Size, ParticleCanvasProps } from './components/types'
+import { createDefaultFormData } from './utils/factory'
 
 const App: React.FC = () => {
   const [formData, setFormData] = useState<FormData>(createDefaultFormData())

@@ -2,7 +2,8 @@
 
 import React, { useState } from "react"
 import styled from "@emotion/styled"
-import { createDefaultFormData, FormData } from "./types"
+import { FormData } from "./types"
+import { createDefaultFormData } from "../utils/factory";
 
 interface ParticleFormProps {
   onFormSubmit: (formData: FormData) => void;

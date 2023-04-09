@@ -1,3 +1,4 @@
+import { QuadTree } from "js-quadtree"
 
 export interface ParticleCanvasProps {
   width: number
@@ -10,7 +11,19 @@ export interface NeighborInfo {
   neighborNumber: number
 }
 
+export interface EnvironmentData {
+  formData: FormData
+  quadTree: QuadTree
+  width: number
+  height: number
+  maxParticleRadius: number
+}
+
 export interface Particle {
+  /**
+   * The particule identifier
+   */
+  id: number,
   /**
    * x position
    */
@@ -28,13 +41,23 @@ export interface Particle {
    */
   a: number,
   /**
+   * Mass
+   */
+  m: number,
+  /**
    * Particule size
    */
   radius: number,
   /**
    * Particule color
    */
-  color: string
+  color: string,
+  /**
+   * An array of particules ids to determine
+   * other particles that currently interract 
+   * with this one
+   */
+  interactionParticles: number[]
 }
 
 export interface Size {
@@ -61,11 +84,3 @@ export interface FormData {
   particuleRadius: number
 }
 
-export const createDefaultFormData = (): FormData => {
-    return {
-        numberOfParticles: 1000,
-        reactionRadius: 5,
-        speed: 0.67,
-        particuleRadius: 8
-    }
-}
