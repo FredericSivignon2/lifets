@@ -3,7 +3,7 @@
 import React, { useState } from "react"
 import styled from "@emotion/styled"
 import { MainData, ParticleData } from "./types"
-import { createDefaultFormData } from "../utils/factory"
+import { createDefaultFormData, createDefaultParticleData } from "../utils/factory"
 import { ParticleDataForm } from "./ParticleDataForm"
 import { FormField } from './StyledFields'
 
@@ -34,13 +34,7 @@ const MainDataForm: React.FC<ParticleFormProps> = ({ onFormSubmit }) => {
       ...prevFormData,
       particlesData: [
         ...prevFormData.particlesData,
-        {
-          speed: 0,
-          volumicMass: 0,
-          radius: 0,
-          color: '',
-          numberOfParticles: 0,
-        },
+        createDefaultParticleData(),
       ],
     }));
   };

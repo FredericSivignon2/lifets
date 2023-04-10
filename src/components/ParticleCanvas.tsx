@@ -7,6 +7,7 @@ import { generateRandomParticles, getQuadTreeConfig } from '../utils/factory'
 import { Particle } from '../models/Particle'
 import { playSound } from '../utils/sound'
 import ball_sound from "../sounds/ball_sound_01.wav"
+import { updateParticles } from './ParticleBehavior'
 
 const ParticleCanvas: React.FC<ParticleCanvasProps> = ({
   width,
@@ -34,17 +35,6 @@ const ParticleCanvas: React.FC<ParticleCanvasProps> = ({
     const ctx = canvasRef.current.getContext('2d')
     if (!ctx) return
 
-    // const drawParticles = () => {
-    //   ctx.clearRect(0, 0, width, height)
-
-    //   particlesRef.current.forEach((particle) => {
-    //     ctx.beginPath()
-    //     ctx.arc(particle.x, particle.y, particle.radius, 0, 2 * Math.PI)
-    //     ctx.fillStyle = particle.color.toString()
-    //     ctx.fill()
-    //   })
-    // }
-
     const drawParticles = () => {
       ctx.clearRect(0, 0, width, height);
     
@@ -52,23 +42,28 @@ const ParticleCanvas: React.FC<ParticleCanvasProps> = ({
         ctx.beginPath();
         ctx.arc(particle.x, particle.y, particle.radius, 0, 2 * Math.PI);
     
-        // Create a radial gradient for the bubble
-        const gradient = ctx.createRadialGradient(
-          particle.x - particle.radius / 4,
-          particle.y - particle.radius / 4,
-          0,
-          particle.x,
-          particle.y,
-          particle.radius
-        );
-    
-        // Define gradient colors and stops
-        gradient.addColorStop(0, 'rgba(255, 255, 255, 0.8)');
-        gradient.addColorStop(0.95, particle.color.toString());
-        gradient.addColorStop(1, 'rgba(0, 0, 0, 0.2)');
-    
-        // Use the gradient as the fill style
-        ctx.fillStyle = gradient;
+        if (particle.radius < 4) {
+          ctx.arc(particle.x, particle.y, particle.radius, 0, 2 * Math.PI)
+          ctx.fillStyle = particle.color.toString()
+        } else {
+          // Create a radial gradient for the bubble
+          const gradient = ctx.createRadialGradient(
+            particle.x - particle.radius / 4,
+            particle.y - particle.radius / 4,
+            0,
+            particle.x,
+            particle.y,
+            particle.radius
+          );
+      
+          // Define gradient colors and stops
+          gradient.addColorStop(0, 'rgba(255, 255, 255, 0.8)');
+          gradient.addColorStop(0.95, particle.color.toString());
+          gradient.addColorStop(1, 'rgba(0, 0, 0, 0.2)');
+      
+          // Use the gradient as the fill style
+          ctx.fillStyle = gradient;
+        }
         ctx.fill();
       });
     };
@@ -112,77 +107,4 @@ const ParticleCanvas: React.FC<ParticleCanvasProps> = ({
 }
 
 export default ParticleCanvas
-
-const getPointsFromParticles = (particles: Particle[]): Point[] => {
-  return particles.map((particle) => {
-    return new Point(particle.x, particle.y, particle)
-  })
-}
-
-const getParticlesFromPoints = (points: Point[]) : Particle[] => {
-  return points.map((point) => {
-    return point.data 
-  })
-}
-
-const updateParticles = (
-  particles: Particle[],
-  envData: EnvironmentData
-): Particle[] => {
-
-  envData.quadTree.clear()
-  envData.quadTree.insert(getPointsFromParticles(particles))
-
-  particles.forEach((particle) => {    
-
-    const points = envData.quadTree.query(
-      new Circle(particle.x, particle.y, envData.height / 8)
-    )
-
-    particle.applyAttractionForces(getParticlesFromPoints(points))
-  
-    particle.move()
-  })
-
-  checkCollisions(particles, envData)
-
-  return particles
-}
-
-const checkCollisions = (
-  particles: Particle[],
-  envData: EnvironmentData
-) => {
-  envData.quadTree.clear()
-  envData.quadTree.insert(getPointsFromParticles(particles))
-
-  particles.forEach((particle) => {
-    
-    const points = envData.quadTree.query(
-      new Circle(particle.x, particle.y, envData.maxParticleRadius * 3)
-    )
-
-    if (points && points !== undefined && points.length > 1) {
-     
-      points.forEach((point) => {
-        if (point.x === particle.x && point.y === particle.y) {
-          return
-        }
-
-        const otherParticle = point.data
-        const distance = getDistanceBetween(particle, otherParticle)
-
-        // Collision?
-        if (distance > particle.radius + otherParticle.radius) {
-          return
-        }
-        // Now, modify particle direction if there is a collision
-        particle.resolveElasticCollision(otherParticle)
-        
-        // envData.audio.pause()
-        // envData.audio.play()
-      })
-   }
-  })
-}
 

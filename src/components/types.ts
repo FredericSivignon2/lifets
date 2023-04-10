@@ -40,6 +40,22 @@ export interface ParticleData {
   speed: number
   volumicMass: number
   radius: number
+  /**
+   * Determines whether this particle is sensitive
+   * to other magnetic particles
+   */
+  isSensitiveToMagnetism: boolean,
+  /**
+   * Determines whether this particle is magnetic,
+   * so if it can influence (attract or repulse)
+   * the other particles sensitive to magnetism
+   */
+  isMagnetic: boolean,
+  /**
+   * Only available if isMagnetic is true.
+   * Deterlines the magnetic force of ti
+   */
+  magneticForce: number,
   color: string
   numberOfParticles: number
 }
