@@ -16,81 +16,81 @@ export const createDefaultParticleData = (): ParticleData => {
 	}
 }
 
-export const createDefaultFormData = (): MainData => {
-	return {
-		coefficientOfRestitution: 1,
-		particlesData: [
-			{
-				speed: 1,
-				volumicMass: 0.4,
-				radius: 30,
-				color: '#0000A0',
-				numberOfParticles: 30,
-				isSensitiveToMagnetism: false,
-				isMagnetic: false,
-				magneticForce: 0,
-			},
-			{
-				speed: 0.5,
-				volumicMass: 0.5,
-				radius: 40,
-				color: '#2A9E00',
-				numberOfParticles: 30,
-				isSensitiveToMagnetism: false,
-				isMagnetic: false,
-				magneticForce: 0,
-			},
-			{
-				speed: 1,
-				volumicMass: 0.3,
-				radius: 25,
-				color: '#C91DA4',
-				numberOfParticles: 50,
-				isSensitiveToMagnetism: false,
-				isMagnetic: false,
-				magneticForce: 0,
-			},
-			{
-				speed: 0.2,
-				volumicMass: 0.4,
-				radius: 90,
-				color: '#C96A1D',
-				numberOfParticles: 1,
-				isSensitiveToMagnetism: false,
-				isMagnetic: false,
-				magneticForce: 0,
-			},
-		],
-	}
-}
-
 // export const createDefaultFormData = (): MainData => {
-//   return {
-//     coefficientOfRestitution: 1,
-//     particlesData:
-//     [{
-//       speed: 1,
-//       volumicMass: 1,
-//       radius: 40,
-//       color: '#C96A1D',
-//       numberOfParticles: 1,
-//       isSensitiveToMagnetism: false,
-//       isMagnetic: false,
-//       magneticForce: 0
-//     },
-//     {
-//       speed: 1.5,
-//       volumicMass: 1,
-//       radius: 80,
-//       color: '#C91DA4',
-//       numberOfParticles: 1,
-//       isSensitiveToMagnetism: false,
-//       isMagnetic: false,
-//       magneticForce: 0
-//     }
-//   ]
-//   }
+// 	return {
+// 		coefficientOfRestitution: 1,
+// 		particlesData: [
+// 			{
+// 				speed: 1,
+// 				volumicMass: 0.4,
+// 				radius: 30,
+// 				color: '#0000A0',
+// 				numberOfParticles: 30,
+// 				isSensitiveToMagnetism: false,
+// 				isMagnetic: false,
+// 				magneticForce: 0,
+// 			},
+// 			{
+// 				speed: 0.5,
+// 				volumicMass: 0.5,
+// 				radius: 40,
+// 				color: '#2A9E00',
+// 				numberOfParticles: 30,
+// 				isSensitiveToMagnetism: false,
+// 				isMagnetic: false,
+// 				magneticForce: 0,
+// 			},
+// 			{
+// 				speed: 1,
+// 				volumicMass: 0.3,
+// 				radius: 25,
+// 				color: '#C91DA4',
+// 				numberOfParticles: 50,
+// 				isSensitiveToMagnetism: false,
+// 				isMagnetic: false,
+// 				magneticForce: 0,
+// 			},
+// 			{
+// 				speed: 0.2,
+// 				volumicMass: 0.4,
+// 				radius: 90,
+// 				color: '#C96A1D',
+// 				numberOfParticles: 1,
+// 				isSensitiveToMagnetism: false,
+// 				isMagnetic: false,
+// 				magneticForce: 0,
+// 			},
+// 		],
+// 	}
 // }
+
+export const createDefaultFormData = (): MainData => {
+  return {
+    coefficientOfRestitution: 1,
+    particlesData:
+    [{
+      speed: 1,
+      volumicMass: 1,
+      radius: 40,
+      color: '#C96A1D',
+      numberOfParticles: 1,
+      isSensitiveToMagnetism: false,
+      isMagnetic: false,
+      magneticForce: 0
+    },
+    {
+      speed: 1.5,
+      volumicMass: 1,
+      radius: 4,
+      color: '#C91DA4',
+      numberOfParticles: 2000,
+      isSensitiveToMagnetism: false,
+      isMagnetic: false,
+      magneticForce: 0
+    }
+  ]
+  }
+}
 
 export const getQuadTreeConfig = () => {
 	return {

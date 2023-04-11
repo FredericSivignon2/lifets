@@ -1,16 +1,26 @@
 import { Circle, Point } from 'js-quadtree'
 import { Particle } from '../models/Particle'
 import { EnvironmentData } from './types'
-import { getDistanceBetween } from '../utils/Math2D'
+import { getDistanceBetweenParticles } from '../utils/Math2D'
+import { isNil } from '../utils/utils'
 
 export const updateParticles = (
 	particles: Particle[],
-	envData: EnvironmentData
+	envData: EnvironmentData,
+	selectedParticle: Particle | null
 ): Particle[] => {
 	envData.quadTree.clear()
 	envData.quadTree.insert(getPointsFromParticles(particles))
 
 	particles.forEach((particle) => {
+		
+		if (
+			!isNil(selectedParticle) &&
+			selectedParticle?.id === particle.id
+		) {
+			return
+		}
+
 		const points = envData.quadTree.query(
 			new Circle(particle.x, particle.y, envData.height / 8)
 		)
@@ -55,7 +65,7 @@ const checkCollisions = (particles: Particle[], envData: EnvironmentData) => {
 				}
 
 				const otherParticle = point.data
-				const distance = getDistanceBetween(particle, otherParticle)
+				const distance = getDistanceBetweenParticles(particle, otherParticle)
 
 				// Collision?
 				if (distance > particle.radius + otherParticle.radius) {

@@ -37,7 +37,8 @@ export class ParticleImpl implements Particle {
 		this.x = x
 		this.y = y
 		this.speed = speed
-		;(this.angle = angle), (this.radius = radius)
+		this.angle = angle
+        this.radius = radius
 		this.volumicMass = volumicMass
 		this.isSensitiveToMagnetism = isSensitiveToMagnetism
 		this.isMagnetic = isMagnetic
