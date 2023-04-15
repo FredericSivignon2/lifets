@@ -54,9 +54,11 @@ export interface Particle {
 	/**
 	 * Particule color
 	 */
-	color: string
+	color: string,
+	requestedAngle: number,
+	requestedSpeed: number
 
-	move(): void
+	move(useRequested: boolean): void
 	applyMagneticForces(particles: Particle[]): void
 	resolveElasticCollision(otherParticle: Particle): void
 }

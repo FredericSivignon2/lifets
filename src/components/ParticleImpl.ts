@@ -18,6 +18,8 @@ export class ParticleImpl implements Particle {
 	magneticForce: number
 	radius: number
 	color: string
+	requestedSpeed: number
+	requestedAngle: number
 
 	constructor(
 		envData: EnvironmentData,
@@ -45,9 +47,17 @@ export class ParticleImpl implements Particle {
 		this.magneticForce = magneticForce
 		this.mass = radius * radius * Math.PI * volumicMass
 		this.color = color
+		this.requestedAngle = 0
+		this.requestedSpeed = 0
 	}
 
-	move = (): void => {
+	move = (useRequested: boolean): void => {
+
+		if (useRequested === true) {
+			console.log('*** Applied speed: ' +  this.requestedSpeed)
+			this.angle = this.requestedAngle
+			this.speed = this.requestedSpeed
+		}
 		this.x += this.speed * Math.cos(this.angle)
 		this.y += this.speed * Math.sin(this.angle)
 
@@ -175,7 +185,8 @@ export class ParticleImpl implements Particle {
 
 		const newSpeed1 = Math.sqrt(vx1 * vx1 + vy1 * vy1)
 
-		this.speed = newSpeed1 > 2 ? 2 : newSpeed1
+		// this.speed = newSpeed1 > 2 ? 2 : newSpeed1
+		this.speed = newSpeed1
 
 		const newSpeed2 = Math.sqrt(vx2 * vx2 + vy2 * vy2)
 		otherParticle.speed = newSpeed2 > 2 ? 2 : newSpeed2

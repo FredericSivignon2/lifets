@@ -41,11 +41,10 @@ const ParticleCanvas: React.FC<ParticleCanvasProps> = ({
 		const particle = findParticleUnderCursor(x, y)
 		if (particle) {
 			selectedParticle.current = particle
-			console.log('*** (1) Mouse down. Selected Particle ID: ' + particle.id)
 		}
 	}
 
-	const handleMouseMove = (event: React.MouseEvent) => {
+	const requestParticleMovementUpdate = (event: React.MouseEvent) => {
 		if (selectedParticle.current) {
 			const rect = canvasRef.current?.getBoundingClientRect()
 			if (rect === undefined) return
@@ -56,17 +55,18 @@ const ParticleCanvas: React.FC<ParticleCanvasProps> = ({
 			const prevX = selectedParticle.current.x
 			const prevY = selectedParticle.current.y
 
-			selectedParticle.current.x = x
-			selectedParticle.current.y = y
-
-			selectedParticle.current.speed = getDistanceBetweenPoints(prevX, prevY, x, y)
-			selectedParticle.current.angle = angleBetweenPoints(prevX, prevY, x, y)
-			console.log('*** (2) Selected Particle speed: ' + selectedParticle.current.speed)
+			selectedParticle.current.requestedSpeed = getDistanceBetweenPoints(prevX, prevY, x, y)
+			console.log('*** Requested speed: ' + selectedParticle.current.requestedSpeed)
+			selectedParticle.current.requestedAngle = angleBetweenPoints(prevX, prevY, x, y)
 		}
 	}
 
-	const handleMouseUp = () => {
-		console.log('*** (3) Mouse up. Selected Particle ID: ' + selectedParticle.current?.id)
+	const handleMouseMove = (event: React.MouseEvent) => {
+		requestParticleMovementUpdate(event)
+	}
+
+	const handleMouseUp = (event: React.MouseEvent) => {
+		requestParticleMovementUpdate(event)
 		selectedParticle.current = null
 	}
 
@@ -74,7 +74,6 @@ const ParticleCanvas: React.FC<ParticleCanvasProps> = ({
 		if (particlesRef.current === undefined || envDataRef.current === undefined)
 			return
 
-		console.log('*** (4) Selected Particle ID: ' + selectedParticle.current?.id)
 		const currentTime = performance.now()
 		envDataRef.current.deltaTime =
 			currentTime - envDataRef.current.lastUpdateTime

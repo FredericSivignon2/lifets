@@ -12,6 +12,10 @@ export const updateParticles = (
 	envData.quadTree.clear()
 	envData.quadTree.insert(getPointsFromParticles(particles))
 
+	if (selectedParticle) {
+		selectedParticle.move(true)
+	}
+
 	particles.forEach((particle) => {
 		
 		if (
@@ -29,7 +33,7 @@ export const updateParticles = (
 			particle.applyMagneticForces(getParticlesFromPoints(points))
 		}
 
-		particle.move()
+		particle.move(false)
 	})
 
 	checkCollisions(particles, envData)
